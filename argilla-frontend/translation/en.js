@@ -1,4 +1,12 @@
 export default {
+  translationReview: {
+    notes: "Review notes (optional)",
+    standard: "Standard view",
+    compact: "Translation review",
+    originals: "Original text and context",
+    filters: "Filters and guidelines",
+  },
+  reviewTextSize: { label: "Review text size" },
   multi_label_selection: "Multi-label",
   ranking: "Ranking",
   label_selection: "Label",

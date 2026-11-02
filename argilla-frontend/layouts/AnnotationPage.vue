@@ -30,6 +30,7 @@ $gap-width: $base-space * 2;
   transition: 0.4s ease-in-out;
   @include media("<desktop") {
     height: 100svh;
+    height: 100dvh;
   }
 }
 

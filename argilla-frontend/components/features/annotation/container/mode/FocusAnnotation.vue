@@ -1,5 +1,22 @@
 <template>
-  <VerticalResizable class="wrapper" :id="`${recordCriteria.datasetId}-r-v-rz`">
+  <TranslationReview
+    v-if="canReviewTranslations && !standardView"
+    :record="record"
+    :recordCriteria="recordCriteria"
+    :is-draft-saving="isDraftSaving"
+    :is-submitting="isSubmitting"
+    :is-discarding="isDiscarding"
+    @submit="onSubmit"
+    @discard="onDiscard"
+    @save-draft="onSaveDraft"
+    @show-standard="standardView = true"
+  />
+  <VerticalResizable
+    v-else
+    class="wrapper review-view"
+    :style="{ '--review-text-size': `${reviewTextSize}px` }"
+    :id="`${recordCriteria.datasetId}-r-v-rz`"
+  >
     <template #left>
       <HorizontalResizable
         :id="`${recordCriteria.datasetId}-r-h-rz`"
@@ -24,6 +41,13 @@
               :availableVectors="datasetVectors"
             />
             <div class="wrapper__records__header">
+              <ReviewTextSize v-model="reviewTextSize" />
+              <BaseButton
+                v-if="canReviewTranslations"
+                @on-click="standardView = false"
+              >
+                {{ $t("translationReview.compact") }}
+              </BaseButton>
               <PaginationFeedbackTask :recordCriteria="recordCriteria" />
             </div>
             <div v-if="recordsMessage" class="wrapper--empty">
@@ -132,7 +156,23 @@ export default {
   data() {
     return {
       expandedGuidelines: false,
+      reviewTextSize: 16,
+      standardView: false,
     };
+  },
+  computed: {
+    canReviewTranslations() {
+      return [
+        "final_french",
+        "final_darija_arabic",
+        "final_darija_latin",
+        "final_english",
+      ].every((name) =>
+        this.record?.questions.some(
+          (question) => question.name === name && question.isTextType
+        )
+      );
+    },
   },
   methods: {
     async onSubmit() {
@@ -227,6 +267,101 @@ export default {
   display: none;
   .--expanded & {
     display: block;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+// Only reading/editing content scales. Labels, navigation and actions keep their size.
+.review-view {
+  :deep(.text_field_component .content-area),
+  :deep(.text_field_component .markdown-render),
+  :deep(.textarea .content__text),
+  :deep(.textarea--markdown) {
+    font-size: var(--review-text-size);
+    line-height: 1.5;
+  }
+
+  .wrapper__records__header {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  @include media("<desktop") {
+    // Saved desktop pane sizes must not constrain the phone layout.
+    :deep(.resizable-v__left),
+    :deep(.resizable-v__right) {
+      flex: none;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      margin: 0;
+      align-items: stretch;
+    }
+
+    .wrapper__left,
+    .wrapper__right {
+      height: auto !important;
+      min-width: 0;
+      flex: none;
+    }
+
+    :deep(.resizable-h__up) {
+      flex: none;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: visible;
+    }
+
+    .wrapper__records {
+      height: auto;
+      padding: $base-space;
+    }
+
+    .wrapper__form {
+      padding: $base-space;
+    }
+
+    :deep(.record),
+    :deep(.record__wrapper) {
+      flex: none;
+    }
+
+    :deep(.record__content) {
+      overflow: visible;
+      padding: $base-space;
+    }
+
+    :deep(.record__fixed-header) {
+      padding: $base-space;
+    }
+
+    :deep(.text_field_component) {
+      padding: $base-space;
+    }
+
+    :deep(.questions-form__content) {
+      overflow: visible;
+    }
+
+    :deep(.footer-form) {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    :deep(.button__shortcuts) {
+      display: none;
+    }
+
+    :deep(.text_field_component__copy-button) {
+      opacity: 1;
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    :deep(.textarea .content__text) {
+      font-size: max(16px, var(--review-text-size));
+    }
   }
 }
 </style>

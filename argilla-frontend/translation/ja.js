@@ -1,4 +1,5 @@
 export default {
+  reviewTextSize: { label: "レビューの文字サイズ" },
   multi_label_selection: "マルチラベル",
   ranking: "ランキング",
   label_selection: "ラベル",

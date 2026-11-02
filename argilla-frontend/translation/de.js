@@ -1,4 +1,5 @@
 export default {
+  reviewTextSize: { label: "Textgröße beim Prüfen" },
   multi_label_selection: "Multi-Label",
   ranking: "Ranking",
   label_selection: "Label",

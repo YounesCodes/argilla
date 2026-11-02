@@ -9,7 +9,7 @@
   >
     <div class="questions-form__content">
       <QuestionsComponent
-        :questions="record.questions"
+        :questions="visibleQuestions"
         :autofocusPosition="autofocusPosition"
         :is-bulk-mode="isBulkMode"
         @on-focus="updateQuestionAutofocus"
@@ -93,6 +93,10 @@ import "assets/icons/refresh";
 
 export default {
   props: {
+    hiddenQuestionNames: {
+      type: Array,
+      default: () => [],
+    },
     datasetId: {
       type: String,
       required: true,
@@ -167,6 +171,11 @@ export default {
     };
   },
   computed: {
+    visibleQuestions() {
+      return this.record.questions.filter(
+        (question) => !this.hiddenQuestionNames.includes(question.name)
+      );
+    },
     questionFormClass() {
       if (this.isSubmitting) return "--submitting --waiting";
       if (this.isDiscarding) return "--discarding --waiting";
@@ -182,7 +191,7 @@ export default {
       return this.autofocusPosition || this.autofocusPosition == 0;
     },
     numberOfQuestions() {
-      return this.record.questions.length;
+      return this.visibleQuestions.length;
     },
     questionAreCompletedCorrectly() {
       return this.record.questionAreCompletedCorrectly();

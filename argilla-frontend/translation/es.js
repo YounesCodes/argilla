@@ -1,4 +1,5 @@
 export default {
+  reviewTextSize: { label: "Tamaño del texto de revisión" },
   multi_label_selection: "Selección de múltiples etiquetas",
   ranking: "Ranking",
   label_selection: "Selección de etiqueta",
