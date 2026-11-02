@@ -15,7 +15,7 @@ const dataset = newDatasetsMocked[0];
 const userId = "3e760b76-e19a-480a-b436-a85812b98843";
 const timestamp = "2026-11-02T12:00:00";
 
-async function openReview(page) {
+async function openReview(page, datasetName = "e002-doda-assisted-review-v1") {
   // Every API request stays in the fixture, including writes.
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -133,6 +133,7 @@ async function openReview(page) {
   );
   const currentDataset = {
     ...dataset,
+    name: datasetName,
     distribution: { strategy: "overlap", min_submitted: 1 },
     metadata: {},
     allow_extra_metadata: true,
@@ -196,16 +197,11 @@ for (const viewport of [
       .locator("[contenteditable]")
       .first()
       .fill("Le livre est posé sur la table.");
-    for (const name of [
-      "transliteration",
-      "english_translation",
-      "french_translation",
-    ]) {
-      await page
-        .getByLabel(`Question: ${name}`, { exact: true })
-        .getByText("accept", { exact: true })
-        .click();
-    }
+    await expect(page.locator(".overall-decision")).toHaveCount(1);
+    await expect(
+      page.locator(".translation-review__judgments .questions > div")
+    ).toHaveCount(0);
+    await page.getByRole("radio", { name: "Accept", exact: true }).check();
     await expect(buttons).toBeEnabled();
     const submitBounds = await buttons.boundingBox();
     expect(submitBounds!.y + submitBounds!.height).toBeLessThanOrEqual(
@@ -219,6 +215,13 @@ for (const viewport of [
     await buttons.click();
     const payload = (await request).postDataJSON();
     expect(payload.status).toBe("submitted");
+    for (const name of [
+      "transliteration",
+      "english_translation",
+      "french_translation",
+    ]) {
+      expect(payload.values[name].value).toBe("accept");
+    }
     expect(payload.values.final_french.value).toBe(
       "Le livre est posé sur la table."
     );
@@ -236,3 +239,11 @@ for (const viewport of [
     });
   });
 }
+
+test("other datasets retain their separate judgments", async ({ page }) => {
+  await openReview(page, "another-translation-dataset");
+  await expect(page.locator(".overall-decision")).toHaveCount(0);
+  await expect(
+    page.locator(".translation-review__judgments .questions > div")
+  ).toHaveCount(3);
+});

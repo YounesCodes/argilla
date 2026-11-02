@@ -31,12 +31,17 @@
           <TextAreaContents :question="card.question" :is-focused="false" />
         </section>
       </div>
+      <OverallReviewDecision
+        v-if="useOverallDecision"
+        :questions="decisionQuestions"
+      />
       <QuestionsForm
         :key="record.id"
         class="translation-review__judgments"
         :record="record"
         :datasetId="recordCriteria.datasetId"
         :hidden-question-names="hiddenQuestionNames"
+        :is-submit-disabled="useOverallDecision && !overallValue"
         :show-discard-button="!record.isDiscarded"
         :is-draft-saving="isDraftSaving"
         :is-submitting="isSubmitting"
@@ -70,7 +75,17 @@
 </template>
 
 <script>
+import { useDataset } from "~/v1/infrastructure/storage/DatasetStorage";
+import {
+  CRITERIA,
+  REVIEW_DATASET,
+  overallDecision,
+} from "./overallReviewDecision";
 export default {
+  setup() {
+    const { state: dataset } = useDataset();
+    return { dataset };
+  },
   props: {
     record: { type: Object, required: true },
     recordCriteria: { type: Object, required: true },
@@ -90,6 +105,21 @@ export default {
     },
   },
   computed: {
+    decisionQuestions() {
+      return this.record.questions.filter((question) =>
+        CRITERIA.includes(question.name)
+      );
+    },
+    useOverallDecision() {
+      return (
+        this.dataset?.name === REVIEW_DATASET &&
+        this.decisionQuestions.length === 3 &&
+        this.decisionQuestions.every((question) => question.isSingleLabelType)
+      );
+    },
+    overallValue() {
+      return overallDecision(this.decisionQuestions);
+    },
     optionalNotes() {
       return this.record.questions.filter(
         (question) => question.isTextType && !question.isRequired
@@ -97,6 +127,7 @@ export default {
     },
     hiddenQuestionNames() {
       return [
+        ...(this.useOverallDecision ? CRITERIA : []),
         ...this.cards.map((card) => card.question.name),
         ...this.optionalNotes.map((question) => question.name),
       ];

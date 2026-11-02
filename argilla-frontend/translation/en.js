@@ -1,5 +1,10 @@
 export default {
   translationReview: {
+    overall: "Are all four final texts correct and consistent?",
+    accept: "Accept",
+    reject: "Reject",
+    needs_edit: "Needs edit",
+    chooseOverall: "Choose one overall decision for all four final texts.",
     notes: "Review notes (optional)",
     standard: "Standard view",
     compact: "Translation review",

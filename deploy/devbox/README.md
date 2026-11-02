@@ -8,6 +8,8 @@ Datasets with the four text questions `final_french`, `final_darija_arabic`, `fi
 
 The four current texts appear first, with original fields/context, optional notes, filters, and guidelines available below. Desktop uses two columns; phones use one column. Text size defaults to 20 px and can be changed independently of the UI. The preference is saved in this browser. Standard view restores the original two-pane interface and also has text sizing.
 
+For `e002-doda-assisted-review-v1`, compact review presents one overall decision. Any rejected criterion displays Reject; otherwise any needs_edit displays Needs edit; Accept requires all three accepted. Displaying this aggregate does not change saved answers. Explicitly selecting a decision updates the three existing criteria together, retaining the schema expected by exports. Other datasets and standard view retain the individual criteria.
+
 Short samples and the required judgments fit on the tested 360 × 800 and 390 × 844 viewports at 20 px. Long samples, larger fonts, and an open phone keyboard can require scrolling. Text is never clipped to force a screen fit.
 
 ## Build
