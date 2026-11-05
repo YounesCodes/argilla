@@ -18,6 +18,7 @@
       <slot name="after-questions" />
     </div>
     <div class="footer-form">
+      <slot name="before-actions" />
       <div class="footer-form__content">
         <BaseButton
           v-if="showDiscardButton || isDiscarding"

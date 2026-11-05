@@ -266,6 +266,11 @@ test("mobile actions stay reachable without overlapping long review content", as
   const footer = page.locator(".translation-review .footer-form");
   await expect(submit).toBeInViewport();
   await expect(submit).toBeDisabled();
+  for (const name of ["Accept", "Reject", "Needs edit"]) {
+    await expect(
+      page.getByRole("radio", { name, exact: true })
+    ).toBeInViewport();
+  }
   const scroll = await content.evaluate((element) => ({
     height: element.clientHeight,
     total: element.scrollHeight,
@@ -281,9 +286,30 @@ test("mobile actions stay reachable without overlapping long review content", as
   });
   await expect(submit).toBeInViewport();
   await page.setViewportSize({ width: 390, height: 400 });
+  for (const name of ["Accept", "Reject", "Needs edit"]) {
+    await expect(
+      page.getByRole("radio", { name, exact: true })
+    ).toBeInViewport();
+  }
   await expect(submit).toBeInViewport();
   await expect(
     page.locator(".translation-review .button--draft")
   ).toBeInViewport();
   await page.screenshot({ path: "test-results/mobile-persistent-actions.png" });
+  await page.getByRole("radio", { name: "Reject", exact: true }).check();
+  const saved = page.waitForRequest(
+    (request) =>
+      request.url().endsWith("/records/record-1/responses") &&
+      request.method() === "POST"
+  );
+  await submit.click();
+  const payload = (await saved).postDataJSON();
+  for (const name of [
+    "transliteration",
+    "english_translation",
+    "french_translation",
+  ]) {
+    expect(payload.values[name].value).toBe("reject");
+  }
+  await expect(page.getByLabel("Current Record")).toHaveText("2");
 });

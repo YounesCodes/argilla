@@ -1,5 +1,5 @@
 <template>
-  <fieldset class="overall-decision">
+  <fieldset class="overall-decision" :disabled="disabled">
     <legend>{{ $t("translationReview.overall") }}</legend>
     <div class="overall-decision__options">
       <label
@@ -28,7 +28,10 @@ import {
   setOverallDecision,
 } from "./overallReviewDecision";
 export default {
-  props: { questions: { type: Array, required: true } },
+  props: {
+    questions: { type: Array, required: true },
+    disabled: { type: Boolean, default: false },
+  },
   data: () => ({ decisions: DECISIONS }),
   computed: {
     selected() {
@@ -46,17 +49,24 @@ export default {
 <style lang="scss" scoped>
 .overall-decision {
   border: 0;
-  margin: $base-space 0 0;
-  padding: $base-space;
+  margin: 0 0 $base-space;
+  padding: 0;
   background: var(--bg-form);
   border-radius: $border-radius-m;
   legend {
     font-size: 14px;
     padding-top: $base-space;
+    @include media("<=tablet") {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
   }
   &__options {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: $base-space;
   }
   label {
@@ -68,6 +78,7 @@ export default {
     border: 1px solid var(--bg-opacity-20);
     border-radius: $border-radius-m;
     cursor: pointer;
+    justify-content: center;
   }
   label.selected {
     border-color: var(--fg-cuaternary);

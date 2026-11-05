@@ -47,9 +47,12 @@
             <TextAreaContents :question="card.question" :is-focused="false" />
           </section>
         </div>
+      </template>
+      <template #before-actions>
         <OverallReviewDecision
           v-if="useOverallDecision"
           :questions="decisionQuestions"
+          :disabled="isSubmitting || isDraftSaving || isDiscarding"
         />
       </template>
       <template #after-questions>

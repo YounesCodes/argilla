@@ -6,6 +6,8 @@ This image adds the fork's frontend to `argilla/argilla-server:v2.8.0` and prese
 
 The review actions occupy a reserved bottom row outside the scrolling text and decision area, including phone safe-area padding. Submit, draft and discard remain reachable for long samples without overlaying any content. The same QuestionsForm instance supplies validation, loading states, shortcuts and submission events.
 
+The assisted dataset's Accept, Reject and Needs edit radios are also in this reserved footer, above the action buttons. Their full question remains accessible to screen readers while its long legend is visually hidden on phones to leave more room for text. Decisions are disabled while saving. The text, notes and context scroll within the remaining space.
+
 Datasets with the four text questions `final_french`, `final_darija_arabic`, `final_darija_latin`, and `final_english` open in a compact translation view. Each card edits the existing answer directly. Saved human answers take precedence over suggestions through Argilla's existing record model. All required judgments remain required. Submit, discard, and draft actions use the existing record operations.
 
 The four current texts appear first, with original fields/context, optional notes, filters, and guidelines available below. Desktop uses two columns; phones use one column. Text size defaults to 20 px and can be changed independently of the UI. The preference is saved in this browser. Standard view restores the original two-pane interface and also has text sizing.
