@@ -8,6 +8,7 @@
       <ReviewTextSize v-model="textSize" />
       <PaginationFeedbackTask :recordCriteria="recordCriteria" />
       <button
+        class="standard-view-button"
         type="button"
         :aria-label="$t('translationReview.standard')"
         :title="$t('translationReview.standard')"
@@ -18,6 +19,22 @@
         }}</span>
         <span class="standard-icon" aria-hidden="true">⋯</span>
       </button>
+      <details class="review-tools" ref="tools">
+        <summary :aria-label="$t('translationReview.tools')">⋯</summary>
+        <div class="review-tools__menu">
+          <p>{{ dataset && dataset.name }}</p>
+          <button
+            type="button"
+            :aria-expanded="navigationOpen"
+            @click="toggleNavigation"
+          >
+            {{ $t("translationReview.navigation") }}
+          </button>
+          <button type="button" @click="$emit('show-standard')">
+            {{ $t("translationReview.standard") }}
+          </button>
+        </div>
+      </details>
     </div>
     <QuestionsForm
       ref="form"
@@ -92,6 +109,7 @@ import {
   overallDecision,
 } from "./overallReviewDecision";
 export default {
+  inject: { setReviewNavigation: { default: () => () => {} } },
   setup() {
     const { state: dataset } = useDataset();
     return { dataset };
@@ -103,7 +121,17 @@ export default {
     isSubmitting: { type: Boolean, required: true },
     isDiscarding: { type: Boolean, required: true },
   },
-  data: () => ({ textSize: 20 }),
+  data: () => ({ textSize: 20, navigationOpen: false }),
+  methods: {
+    toggleNavigation() {
+      this.navigationOpen = !this.navigationOpen;
+      this.setReviewNavigation(this.navigationOpen);
+      this.$refs.tools.open = false;
+    },
+  },
+  beforeDestroy() {
+    this.setReviewNavigation(false);
+  },
   watch: {
     "record.id"() {
       // Question focus can scroll the container while the next record mounts.
@@ -173,6 +201,7 @@ export default {
   min-height: 0;
   color: var(--fg-primary);
   &__toolbar {
+    position: relative;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -181,6 +210,7 @@ export default {
     padding: $base-space;
     border-bottom: 1px solid var(--bg-opacity-10);
     @include media("<=tablet") {
+      padding-block: 4px;
       :deep(.review-text-size label) {
         position: absolute;
         width: 1px;
@@ -208,6 +238,52 @@ export default {
         .standard-icon {
           display: inline;
           font-size: 24px;
+        }
+      }
+    }
+    .standard-view-button {
+      @include media("<=tablet") {
+        display: none;
+      }
+    }
+    .review-tools {
+      display: none;
+      margin-left: auto;
+      @include media("<=tablet") {
+        display: block;
+      }
+      summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 24px;
+        cursor: pointer;
+        &::-webkit-details-marker {
+          display: none;
+        }
+      }
+      &__menu {
+        position: absolute;
+        top: 100%;
+        right: $base-space;
+        z-index: 5;
+        width: min(320px, 90vw);
+        padding: $base-space * 2;
+        border: 1px solid var(--bg-opacity-20);
+        border-radius: $border-radius-m;
+        background: var(--bg-accent-grey-1);
+        p {
+          overflow-wrap: anywhere;
+          margin: 0 0 $base-space;
+          font-size: 13px;
+        }
+        button {
+          display: block;
+          width: 100%;
+          margin: $base-space 0 0;
         }
       }
     }

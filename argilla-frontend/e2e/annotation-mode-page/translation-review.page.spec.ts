@@ -18,7 +18,7 @@ const timestamp = "2026-11-02T12:00:00";
 async function openReview(
   page,
   datasetName = "e002-doda-assisted-review-v1",
-  longText = false
+  longText: boolean | string[] = false
 ) {
   // Every API request stays in the fixture, including writes.
   await page.route("**/api/**", async (route) => {
@@ -102,7 +102,9 @@ async function openReview(
             suggestions: languages.map(([name, , value]) => ({
               id: `s-${name}`,
               question_id: `q-${name}`,
-              value: longText
+              value: Array.isArray(longText)
+                ? longText[languages.findIndex(([field]) => field === name)]
+                : longText
                 ? `${value} `.repeat(12)
                 : number === 1
                 ? value
@@ -312,4 +314,62 @@ test("mobile actions stay reachable without overlapping long review content", as
     expect(payload.values[name].value).toBe("reject");
   }
   await expect(page.getByLabel("Current Record")).toHaveText("2");
+});
+
+test("phone reading space fits the reference sample at readable sizes and retains navigation", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 650 });
+  const texts = [
+    "Le médecin m'a fait un bilan de santé la semaine dernière et a dit que j'étais en pleine forme.",
+    "طبيب دوز ليا ديك سيمانا أ گال ليا راني صحيح فصيح.",
+    "tbib dowz lia dik simana o galia rani s7i7 fsi7.",
+    "The doctor gave me a check-up last week and said I was as fit as a fiddle.",
+  ];
+  await openReview(page, "e002-doda-assisted-review-v1", texts);
+  const content = page.locator(".translation-review .questions-form__content");
+  const cards = page.locator(".translation-review__cards");
+  const size = page.getByRole("combobox", {
+    name: "Review text size",
+    exact: true,
+  });
+  await expect(page.locator(".header-area")).toBeHidden();
+  for (const pixels of [18, 20, 22, 24, 28, 32]) {
+    await size.selectOption(String(pixels));
+    await expect(cards.locator(".content__text").first()).toHaveCSS(
+      "font-size",
+      `${pixels}px`
+    );
+    expect(await cards.locator("[contenteditable]").allTextContents()).toEqual(
+      texts
+    );
+    await expect(
+      page.getByRole("radio", { name: "Accept", exact: true })
+    ).toBeInViewport();
+    await expect(
+      page.locator(".translation-review .button--submit")
+    ).toBeInViewport();
+    if (pixels <= 20) {
+      const last = await cards
+        .locator("[contenteditable]")
+        .last()
+        .boundingBox();
+      const area = await content.boundingBox();
+      expect(last!.y + last!.height).toBeLessThanOrEqual(
+        area!.y + area!.height
+      );
+    }
+  }
+  await size.selectOption("20");
+  await page.getByLabel("Review tools", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "Show or hide dataset navigation" })
+    .click();
+  await expect(page.locator(".header-area")).toBeVisible();
+  await page.getByLabel("Review tools", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "Show or hide dataset navigation" })
+    .click();
+  await expect(page.locator(".header-area")).toBeHidden();
+  await page.screenshot({ path: "test-results/mobile-reference-sample.png" });
 });

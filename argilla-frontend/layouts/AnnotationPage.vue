@@ -1,5 +1,5 @@
 <template>
-  <div class="layout">
+  <div class="layout" :class="{ '--navigation-open': navigationOpen }">
     <div class="header-area">
       <slot name="header">here is the header</slot>
     </div>
@@ -12,6 +12,14 @@
 <script>
 export default {
   name: "AnnotationPagesLayout",
+  data: () => ({ navigationOpen: false }),
+  provide() {
+    return {
+      setReviewNavigation: (visible) => {
+        this.navigationOpen = visible;
+      },
+    };
+  },
 };
 </script>
 
@@ -36,6 +44,11 @@ $gap-width: $base-space * 2;
 
 .header-area {
   grid-area: header;
+}
+@include media("<=tablet") {
+  .layout:has(.translation-review):not(.--navigation-open) .header-area {
+    display: none;
+  }
 }
 .center-area {
   grid-area: center;

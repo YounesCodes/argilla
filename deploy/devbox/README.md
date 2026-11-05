@@ -8,6 +8,8 @@ The review actions occupy a reserved bottom row outside the scrolling text and d
 
 The assisted dataset's Accept, Reject and Needs edit radios are also in this reserved footer, above the action buttons. Their full question remains accessible to screen readers while its long legend is visually hidden on phones to leave more room for text. Decisions are disabled while saving. The text, notes and context scroll within the remaining space.
 
+On phones, compact translation review collapses the full dataset header. The toolbar's Review tools menu shows the dataset name and can reveal the original navigation/settings header or switch to standard view. Desktop navigation is unchanged. The reference check-up sample fits fully at 18 and 20 px in a 390 × 650 viewport. Larger sizes retain their selected font size and scroll naturally; no text is clipped or automatically reduced.
+
 Datasets with the four text questions `final_french`, `final_darija_arabic`, `final_darija_latin`, and `final_english` open in a compact translation view. Each card edits the existing answer directly. Saved human answers take precedence over suggestions through Argilla's existing record model. All required judgments remain required. Submit, discard, and draft actions use the existing record operations.
 
 The four current texts appear first, with original fields/context, optional notes, filters, and guidelines available below. Desktop uses two columns; phones use one column. Text size defaults to 20 px and can be changed independently of the UI. The preference is saved in this browser. Standard view restores the original two-pane interface and also has text sizing.

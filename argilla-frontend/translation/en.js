@@ -1,5 +1,7 @@
 export default {
   translationReview: {
+    tools: "Review tools",
+    navigation: "Show or hide dataset navigation",
     overall: "Are all four final texts correct and consistent?",
     accept: "Accept",
     reject: "Reject",
