@@ -8,12 +8,14 @@
     aria-label="Annotation Questions"
   >
     <div class="questions-form__content">
+      <slot name="before-questions" />
       <QuestionsComponent
         :questions="visibleQuestions"
         :autofocusPosition="autofocusPosition"
         :is-bulk-mode="isBulkMode"
         @on-focus="updateQuestionAutofocus"
       />
+      <slot name="after-questions" />
     </div>
     <div class="footer-form">
       <div class="footer-form__content">

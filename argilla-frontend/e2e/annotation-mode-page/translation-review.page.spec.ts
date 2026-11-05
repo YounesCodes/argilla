@@ -15,7 +15,11 @@ const dataset = newDatasetsMocked[0];
 const userId = "3e760b76-e19a-480a-b436-a85812b98843";
 const timestamp = "2026-11-02T12:00:00";
 
-async function openReview(page, datasetName = "e002-doda-assisted-review-v1") {
+async function openReview(
+  page,
+  datasetName = "e002-doda-assisted-review-v1",
+  longText = false
+) {
   // Every API request stays in the fixture, including writes.
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -98,7 +102,11 @@ async function openReview(page, datasetName = "e002-doda-assisted-review-v1") {
             suggestions: languages.map(([name, , value]) => ({
               id: `s-${name}`,
               question_id: `q-${name}`,
-              value: number === 1 ? value : `${value} 2`,
+              value: longText
+                ? `${value} `.repeat(12)
+                : number === 1
+                ? value
+                : `${value} 2`,
               agent: "gemini",
               score: null,
             })),
@@ -229,7 +237,7 @@ for (const viewport of [
     await expect
       .poll(() =>
         page
-          .locator(".translation-review__body")
+          .locator(".translation-review .questions-form__content")
           .evaluate((element) => element.scrollTop)
       )
       .toBe(0);
@@ -246,4 +254,36 @@ test("other datasets retain their separate judgments", async ({ page }) => {
   await expect(
     page.locator(".translation-review__judgments .questions > div")
   ).toHaveCount(3);
+});
+
+test("mobile actions stay reachable without overlapping long review content", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 650 });
+  await openReview(page, "e002-doda-assisted-review-v1", true);
+  const content = page.locator(".translation-review .questions-form__content");
+  const submit = page.locator(".translation-review .button--submit");
+  const footer = page.locator(".translation-review .footer-form");
+  await expect(submit).toBeInViewport();
+  await expect(submit).toBeDisabled();
+  const scroll = await content.evaluate((element) => ({
+    height: element.clientHeight,
+    total: element.scrollHeight,
+  }));
+  expect(scroll.total).toBeGreaterThan(scroll.height);
+  expect(
+    (await content.boundingBox())!.y + (await content.boundingBox())!.height
+  ).toBeLessThanOrEqual((await footer.boundingBox())!.y + 1);
+  await page.getByRole("radio", { name: "Accept", exact: true }).check();
+  await expect(submit).toBeEnabled();
+  await content.evaluate((element) => {
+    element.scrollTop = 0;
+  });
+  await expect(submit).toBeInViewport();
+  await page.setViewportSize({ width: 390, height: 400 });
+  await expect(submit).toBeInViewport();
+  await expect(
+    page.locator(".translation-review .button--draft")
+  ).toBeInViewport();
+  await page.screenshot({ path: "test-results/mobile-persistent-actions.png" });
 });

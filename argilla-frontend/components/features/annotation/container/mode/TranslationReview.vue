@@ -19,58 +19,65 @@
         <span class="standard-icon" aria-hidden="true">⋯</span>
       </button>
     </div>
-    <div ref="body" class="translation-review__body">
-      <div class="translation-review__cards">
-        <section
-          v-for="card in cards"
-          :key="card.question.id"
-          class="translation-review__card"
-          :aria-label="card.label"
-        >
-          <h2>{{ card.label }}</h2>
-          <TextAreaContents :question="card.question" :is-focused="false" />
-        </section>
-      </div>
-      <OverallReviewDecision
-        v-if="useOverallDecision"
-        :questions="decisionQuestions"
-      />
-      <QuestionsForm
-        :key="record.id"
-        class="translation-review__judgments"
-        :record="record"
-        :datasetId="recordCriteria.datasetId"
-        :hidden-question-names="hiddenQuestionNames"
-        :is-submit-disabled="useOverallDecision && !overallValue"
-        :show-discard-button="!record.isDiscarded"
-        :is-draft-saving="isDraftSaving"
-        :is-submitting="isSubmitting"
-        :is-discarding="isDiscarding"
-        @on-submit-responses="$emit('submit')"
-        @on-discard-responses="$emit('discard')"
-        @on-save-draft="$emit('save-draft')"
-      />
-      <details v-if="optionalNotes.length" class="translation-review__details">
-        <summary>{{ $t("translationReview.notes") }}</summary>
-        <section v-for="question in optionalNotes" :key="question.id">
-          <h2>{{ question.title }}</h2>
-          <TextAreaContents :question="question" :is-focused="false" />
-        </section>
-      </details>
-      <details class="translation-review__details">
-        <summary>{{ $t("translationReview.originals") }}</summary>
-        <RecordFields
-          :record="record"
-          :fields="record.fields"
-          :recordCriteria="recordCriteria"
+    <QuestionsForm
+      ref="form"
+      :key="record.id"
+      class="translation-review__judgments"
+      :record="record"
+      :datasetId="recordCriteria.datasetId"
+      :hidden-question-names="hiddenQuestionNames"
+      :is-submit-disabled="useOverallDecision && !overallValue"
+      :show-discard-button="!record.isDiscarded"
+      :is-draft-saving="isDraftSaving"
+      :is-submitting="isSubmitting"
+      :is-discarding="isDiscarding"
+      @on-submit-responses="$emit('submit')"
+      @on-discard-responses="$emit('discard')"
+      @on-save-draft="$emit('save-draft')"
+    >
+      <template #before-questions>
+        <div class="translation-review__cards">
+          <section
+            v-for="card in cards"
+            :key="card.question.id"
+            class="translation-review__card"
+            :aria-label="card.label"
+          >
+            <h2>{{ card.label }}</h2>
+            <TextAreaContents :question="card.question" :is-focused="false" />
+          </section>
+        </div>
+        <OverallReviewDecision
+          v-if="useOverallDecision"
+          :questions="decisionQuestions"
         />
-      </details>
-      <details class="translation-review__details">
-        <summary>{{ $t("translationReview.filters") }}</summary>
-        <DatasetFilters :recordCriteria="recordCriteria" />
-        <AnnotationGuidelines />
-      </details>
-    </div>
+      </template>
+      <template #after-questions>
+        <details
+          v-if="optionalNotes.length"
+          class="translation-review__details"
+        >
+          <summary>{{ $t("translationReview.notes") }}</summary>
+          <section v-for="question in optionalNotes" :key="question.id">
+            <h2>{{ question.title }}</h2>
+            <TextAreaContents :question="question" :is-focused="false" />
+          </section>
+        </details>
+        <details class="translation-review__details">
+          <summary>{{ $t("translationReview.originals") }}</summary>
+          <RecordFields
+            :record="record"
+            :fields="record.fields"
+            :recordCriteria="recordCriteria"
+          />
+        </details>
+        <details class="translation-review__details">
+          <summary>{{ $t("translationReview.filters") }}</summary>
+          <DatasetFilters :recordCriteria="recordCriteria" />
+          <AnnotationGuidelines />
+        </details>
+      </template>
+    </QuestionsForm>
   </section>
 </template>
 
@@ -99,7 +106,10 @@ export default {
       // Question focus can scroll the container while the next record mounts.
       this.$nextTick(() => {
         requestAnimationFrame(() => {
-          if (this.$refs.body) this.$refs.body.scrollTop = 0;
+          const content = this.$refs.form?.$el.querySelector(
+            ".questions-form__content"
+          );
+          if (content) content.scrollTop = 0;
         });
       });
     },
@@ -160,6 +170,7 @@ export default {
   min-height: 0;
   color: var(--fg-primary);
   &__toolbar {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -198,11 +209,6 @@ export default {
       }
     }
   }
-  &__body {
-    overflow: auto;
-    padding: $base-space;
-    padding-bottom: max(#{$base-space}, env(safe-area-inset-bottom));
-  }
   &__cards {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -231,12 +237,17 @@ export default {
     }
   }
   &__judgments {
-    height: auto;
+    flex: 1;
+    flex-basis: 0;
+    min-height: 0;
     min-width: 0;
-    margin-top: $base-space;
+    margin: 0;
     :deep(.questions-form__content) {
-      overflow: visible;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
       padding: $base-space;
+      scroll-padding-block: $base-space * 2;
     }
     :deep(.questions) {
       gap: $base-space;
@@ -251,9 +262,11 @@ export default {
       display: none;
     }
     :deep(.footer-form) {
-      position: sticky;
-      bottom: 0;
-      z-index: 2;
+      flex-shrink: 0;
+      padding: $base-space;
+      padding-bottom: max(#{$base-space}, env(safe-area-inset-bottom));
+      background: var(--bg-accent-grey-1);
+      border-top: 1px solid var(--bg-opacity-10);
     }
   }
   &__details {
